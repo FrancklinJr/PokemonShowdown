@@ -18,6 +18,9 @@ public class Battle {
 
     private int active1 = 0;
     private int active2 = 0;
+    
+    private Integer moveP1 = null;
+    private Integer moveP2 = null;
 
     public Battle(ClientHandler p1, ClientHandler p2) {
 
@@ -116,5 +119,66 @@ public class Battle {
 
         winner.sendMessage("Você venceu!");
         loser.sendMessage("Você perdeu!");
+    }
+    
+    public synchronized void selectMove(ClientHandler player, String moveName) {
+
+        int moveIndex = -1;
+
+        Pokemon pokemon;
+
+        if (player == player1) {
+            pokemon = team1.get(active1);
+        } else {
+            pokemon = team2.get(active2);
+        }
+
+        for (int i = 0; i < pokemon.getMoves().size(); i++) {
+            if (pokemon.getMoves().get(i).getName().equalsIgnoreCase(moveName)) {
+                moveIndex = i;
+                break;
+            }
+        }
+
+        if (moveIndex == -1) {
+            player.sendMessage("Movimento inválido!");
+            return;
+        }
+
+        if (player == player1) {
+            moveP1 = moveIndex;
+            player.sendMessage("Movimento selecionado!");
+        } else {
+            moveP2 = moveIndex;
+            player.sendMessage("Movimento selecionado!");
+        }
+
+        if (moveP1 != null && moveP2 != null) {
+            resolveTurn();
+            moveP1 = null;
+            moveP2 = null;
+        }
+    }
+    
+    private void resolveTurn() {
+
+        Pokemon p1 = team1.get(active1);
+        Pokemon p2 = team2.get(active2);
+
+        boolean p1First = p1.getSpeed() >= p2.getSpeed();
+
+        if (p1First) {
+            performMove(player1, moveP1);
+
+            if (!p2.isFainted()) {
+                performMove(player2, moveP2);
+            }
+        } else {
+            performMove(player2, moveP2);
+
+            if (!p1.isFainted()) {
+                performMove(player1, moveP1);
+            }
+        }
     }
 }
