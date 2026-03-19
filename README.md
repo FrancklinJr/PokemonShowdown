@@ -23,11 +23,27 @@ O sistema permitirá que jogadores:
 
 ## Estrutura atual do projeto
 
+battle/
+- Battle.java
+- TurnManager.java
+  
 client/
 - BatalhaClient.java
 
+data/
+- MoveDatabase.java
+- PokemonDatabase.java
+
+matchmaking/
+- Matchmaker.java
+
+model/
+- Move.java
+- Pokemon.java
+- PokemonSpecies.java
+  
 server/
-- BattleServer.java
+- BatalhaServer.java
 - ClientHandler.java
 
 ## Funcionamento atual
