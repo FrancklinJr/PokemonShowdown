@@ -34,10 +34,16 @@ public class TypeChart {
 		chart.put("DARK_PSYCHIC",    2.0);
 		chart.put("DARK_GHOST",    2.0);
 		chart.put("DARK_DARK",    0.5);
+		chart.put("DARK_FAIRY",    0.5);
 
 		chart.put("FIGHTING_NORMAL",	2.0);
 		chart.put("FIGHTING_GHOST",	0);
 		chart.put("FIGHTING_DARK",	2.0);
+		chart.put("FIGHTING_FAIRY",	0.5);
+		
+		chart.put("FAIRY_FIRE",	0.5);
+		chart.put("FAIRY_FIGHTING",	2.0);
+		chart.put("FAIRY_DARK",	2.0);
     }
 
     public static double getMultiplier(Type attackType, Type defenderType) {
