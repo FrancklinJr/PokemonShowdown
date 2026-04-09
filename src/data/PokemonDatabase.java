@@ -85,6 +85,36 @@ public class PokemonDatabase {
                         MoveDatabase.get("Hyper Beam")
                 )
         ));
+
+        add(new PokemonSpecies(
+                "Regigigas",
+                Type.NORMAL,
+                110,
+                160,
+                110,
+                100,
+                Arrays.asList(
+                        MoveDatabase.get("Giga impact"),
+                        MoveDatabase.get("Tackle"),
+                        MoveDatabase.get("Body Slam"),
+                        MoveDatabase.get("Knock Off")
+                )
+        ));
+
+        add(new PokemonSpecies(
+                "Sirfetchd",
+                Type.NORMAL,
+                62,
+                135,
+                95,
+                65,
+                Arrays.asList(
+                        MoveDatabase.get("Giga impact"),
+                        MoveDatabase.get("Tackle"),
+                        MoveDatabase.get("Body Slam"),
+                        MoveDatabase.get("Knock Off")
+                )
+        ));
     }
 
     private static void add(PokemonSpecies species) {
