@@ -48,6 +48,10 @@ public class Pokemon {
     public int getCurrentHp() {
         return currentHp;
     }
+    
+    public int getMaxHp() {
+        return maxHp;
+    }
 
     public List<Move> getMoves() {
         return moves;
@@ -65,4 +69,8 @@ public class Pokemon {
     public boolean isFainted() {
         return currentHp <= 0;
     }
+
+	public Type getType() {
+		return species.getType();
+	}
 }

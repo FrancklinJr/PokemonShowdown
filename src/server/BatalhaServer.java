@@ -2,14 +2,14 @@ package server;
 
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import battle.Battle;
 
 public class BatalhaServer {
 
-    private static Queue<ClientHandler> matchmakingQueue = new LinkedList<>();
+	private static Queue<ClientHandler> matchmakingQueue = new ConcurrentLinkedQueue<>();
 
     public static synchronized void addPlayerToQueue(ClientHandler player) {
 
@@ -52,5 +52,9 @@ public class BatalhaServer {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    public static void removeFromQueue(ClientHandler player) {
+        matchmakingQueue.remove(player);
     }
 }

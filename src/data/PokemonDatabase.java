@@ -3,6 +3,7 @@ package data;
 import java.util.*;
 
 import model.PokemonSpecies;
+import model.Type;
 
 public class PokemonDatabase {
 
@@ -12,6 +13,7 @@ public class PokemonDatabase {
 
         add(new PokemonSpecies(
                 "Pikachu",
+                Type.ELECTRIC,
                 35,
                 55,
                 40,
@@ -26,6 +28,7 @@ public class PokemonDatabase {
 
         add(new PokemonSpecies(
                 "Charizard",
+                Type.FIRE,
                 78,
                 84,
                 78,
@@ -40,6 +43,7 @@ public class PokemonDatabase {
 
         add(new PokemonSpecies(
                 "Blastoise",
+                Type.WATER,
                 79,
                 83,
                 100,
@@ -54,6 +58,7 @@ public class PokemonDatabase {
 
         add(new PokemonSpecies(
                 "Venusaur",
+                Type.GRASS,
                 80,
                 82,
                 83,
@@ -68,6 +73,7 @@ public class PokemonDatabase {
 
         add(new PokemonSpecies(
                 "Gengar",
+                Type.GHOST,
                 60,
                 65,
                 60,

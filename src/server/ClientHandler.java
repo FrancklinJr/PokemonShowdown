@@ -91,11 +91,39 @@ public class ClientHandler implements Runnable {
                         sendMessage("Você ainda não está em uma batalha!");
                     }
                 }
+                
+                else if (line.startsWith("SWITCH")) {
+
+                    if (battle != null) {
+                        String pokemonName = line.substring(7).trim();
+                        battle.switchPokemon(this, pokemonName);
+                    } else {
+                        sendMessage("Você ainda não está em uma batalha!");
+                    }
+                }
             }
 
         } catch (Exception e) {
 
             System.out.println("Jogador desconectado.");
+        } finally {
+        	handleDisconnect();
+        }
+    }
+    
+    private void handleDisconnect() {
+    	BatalhaServer.removeFromQueue(this);
+
+        if (battle != null) {
+            battle.handlePlayerDisconnect(this);
+        }
+
+        try {
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+        } catch (Exception e) {
+            System.out.println("Erro ao fechar socket: " + e.getMessage());
         }
     }
 }

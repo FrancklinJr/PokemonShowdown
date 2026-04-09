@@ -4,7 +4,7 @@ import java.util.*;
 public class PokemonSpecies {
 
     private String name;
-
+    private Type type;
     private int baseHp;
     private int baseAttack;
     private int baseDefense;
@@ -13,15 +13,11 @@ public class PokemonSpecies {
     private List<Move> moveset;
 
     public PokemonSpecies(
-            String name,
-            int baseHp,
-            int baseAttack,
-            int baseDefense,
-            int baseSpeed,
-            List<Move> moveset
-    ) {
-
+    		String name, Type type, int baseHp, 
+            int baseAttack, int baseDefense, 
+            int baseSpeed, List<Move> moveset) {
         this.name = name;
+        this.type = type;
         this.baseHp = baseHp;
         this.baseAttack = baseAttack;
         this.baseDefense = baseDefense;
@@ -51,5 +47,9 @@ public class PokemonSpecies {
 
     public List<Move> getMoveset() {
         return moveset;
+    }
+    
+    public Type getType() { 
+    	return type; 
     }
 }
