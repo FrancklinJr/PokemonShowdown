@@ -103,7 +103,7 @@ public class PokemonDatabase {
 
         add(new PokemonSpecies(
                 "Sirfetchd",
-                Type.NORMAL,
+                Type.FIGHTING,
                 62,
                 135,
                 95,
