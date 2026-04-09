@@ -115,6 +115,36 @@ public class PokemonDatabase {
                         MoveDatabase.get("Knock Off")
                 )
         ));
+
+        add(new PokemonSpecies(
+                "Mimikyu",
+                Type.GHOST,
+                55,
+                90,
+                80,
+                96,
+                Arrays.asList(
+                        MoveDatabase.get("Shadow Ball"),
+                        MoveDatabase.get("Play Rough"),
+                        MoveDatabase.get("Shadow Claw"),
+                        MoveDatabase.get("Shadow Sneak")
+                )
+        ));
+
+        add(new PokemonSpecies(
+                "Alcremie",
+                Type.FAIRY,
+                65,
+                60,
+                75,
+                64,
+                Arrays.asList(
+                        MoveDatabase.get("Alluring Voice"),
+                        MoveDatabase.get("Play Rough"),
+                        MoveDatabase.get("Draining Kiss"),
+                        MoveDatabase.get("Dazzling Gleam")
+                )
+        ));
     }
 
     private static void add(PokemonSpecies species) {
