@@ -19,6 +19,9 @@ public class MoveDatabase {
     	add(new Move("Solar Beam",    120, Type.GRASS));
     	add(new Move("Shadow Ball",   80,  Type.GHOST));
     	add(new Move("Hyper Beam",    150, Type.NORMAL));
+        add(new Move("Knock Off",    65, Type.DARK));
+        add(new Move("Body Slam",    85, Type.NORMAL));
+        add(new Move("Giga Impact",    150, Type.NORMAL));
     }
 
     private static void add(Move move) {
