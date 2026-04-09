@@ -22,6 +22,13 @@ public class MoveDatabase {
         add(new Move("Knock Off",    65, Type.DARK));
         add(new Move("Body Slam",    85, Type.NORMAL));
         add(new Move("Giga Impact",    150, Type.NORMAL));
+        add(new Move("Play Rough",    90, Type.FAIRY));
+        add(new Move("Shadow Claw",    70, Type.GHOST));
+        add(new Move("Shadow Sneak",    40, Type.GHOST));
+        add(new Move("Alluring Voice",    80, Type.FAIRY));
+        add(new Move("Dazzling Gleam",    80, Type.FAIRY));
+        add(new Move("Shadow Sneak",    40, Type.GHOST));
+        add(new Move("Draining Kiss",    50, Type.FAIRY));
     }
 
     private static void add(Move move) {
