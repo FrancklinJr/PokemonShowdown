@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Pokémon Showdown</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            font-family: 'Segoe UI', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px;
+        }
+
+        h1 { color: #cba6f7; margin-bottom: 24px; font-size: 1.6rem; }
+
+        #tela-inicio { text-align: center; }
+        #tela-inicio p { color: #a6adc8; margin-bottom: 16px; }
+
+        #arena { display: none; width: 100%; max-width: 800px; }
+
+        .campo {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .card-pokemon {
+            background: #181825;
+            border: 1px solid #313244;
+            border-radius: 12px;
+            padding: 16px;
+            flex: 1;
+        }
+
+        .card-pokemon h3 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .card-pokemon .tipo {
+            font-size: 0.75rem;
+            background: #313244;
+            padding: 2px 8px;
+            border-radius: 999px;
+            display: inline-block;
+            margin-bottom: 10px;
+            color: #a6adc8;
+        }
+
+        .barra-hp-container {
+            background: #313244;
+            border-radius: 999px;
+            height: 10px;
+            margin-bottom: 4px;
+            overflow: hidden;
+        }
+
+        .barra-hp {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.4s ease, background 0.4s ease;
+        }
+
+        .hp-texto {
+            font-size: 0.8rem;
+            color: #a6adc8;
+            margin-bottom: 8px;
+        }
+
+        .stats {
+            font-size: 0.75rem;
+            color: #6c7086;
+        }
+
+        #moves {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .btn-move {
+            background: #313244;
+            border: 1px solid #45475a;
+            color: #cdd6f4;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.2s;
+        }
+
+        .btn-move:hover { background: #45475a; }
+        .btn-move:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .btn-move .move-nome { font-weight: bold; font-size: 0.95rem; }
+        .btn-move .move-info { font-size: 0.75rem; color: #a6adc8; margin-top: 2px; }
+
+        #acoes {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .btn-acao {
+            background: #45475a;
+            border: none;
+            color: #cdd6f4;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .btn-acao:hover { background: #585b70; }
+
+        #log {
+            background: #181825;
+            border: 1px solid #313244;
+            border-radius: 10px;
+            padding: 12px;
+            height: 160px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        #log .entrada { color: #a6e3a1; }
+        #log .sistema { color: #89dceb; }
+        #log .erro    { color: #f38ba8; }
+
+        #status {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #fab387;
+            min-height: 20px;
+            text-align: center;
+        }
+
+        .btn-principal {
+            background: #cba6f7;
+            color: #1e1e2e;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-principal:hover { background: #b4befe; }
+
+        #tela-fim {
+            display: none;
+            text-align: center;
+        }
+        #tela-fim h2 { font-size: 2rem; margin-bottom: 16px; }
+        #tela-fim .vitoria { color: #a6e3a1; }
+        #tela-fim .derrota { color: #f38ba8; }
+        #tela-fim .wo      { color: #fab387; }
+
+        #painel-time {
+            background: #181825;
+            border: 1px solid #313244;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .card-time {
+            flex: 1;
+            background: #313244;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            transition: border 0.2s, background 0.2s;
+            text-align: center;
+        }
+
+        .card-time:hover:not(.ativo):not(.desmaiado) {
+            border-color: #cba6f7;
+            background: #45475a;
+        }
+
+        .card-time.ativo {
+            border-color: #a6e3a1;
+            cursor: default;
+        }
+
+        .card-time.desmaiado {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .card-time .ct-nome { font-weight: bold; font-size: 0.9rem; margin-bottom: 4px; }
+        .card-time .ct-tipo { font-size: 0.7rem; background: #45475a; padding: 2px 6px;
+                              border-radius: 999px; display: inline-block; margin-bottom: 6px; }
+        .card-time .ct-hp   { font-size: 0.75rem; color: #a6adc8; }
+    </style>
+</head>
+<body>
+
+<h1>⚔️ Pokémon Showdown</h1>
+
+<div id="tela-inicio">
+    <p>Conectado ao servidor. Clique para entrar na fila!</p>
+    <button class="btn-principal" onclick="entrarFila()">Procurar Batalha</button>
+</div>
+
+<div id="arena">
+    <div class="campo">
+
+        <div class="card-pokemon" id="card-seu">
+            <h3 id="seu-nome">—</h3>
+            <span class="tipo" id="seu-tipo">—</span>
+            <div class="barra-hp-container">
+                <div class="barra-hp" id="sua-barra" style="width:100%; background:#a6e3a1;"></div>
+            </div>
+            <div class="hp-texto" id="seu-hp">— / —</div>
+            <div class="stats" id="seus-stats"></div>
+        </div>
+
+        <div class="card-pokemon" id="card-op">
+            <h3 id="op-nome">—</h3>
+            <span class="tipo" id="op-tipo">—</span>
+            <div class="barra-hp-container">
+                <div class="barra-hp" id="op-barra" style="width:100%; background:#a6e3a1;"></div>
+            </div>
+            <div class="hp-texto" id="op-hp">— / —</div>
+        </div>
+    </div>
+
+    <div id="moves"></div>
+
+    <div id="painel-time" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:0.85rem; color:#a6adc8;">Seu time — clique para trocar</span>
+            <button onclick="fecharTime()" style="background:none; border:none; color:#a6adc8; cursor:pointer; font-size:1.2rem;">✕</button>
+        </div>
+        <div id="cards-time" style="display:flex; gap:10px;"></div>
+    </div>
+
+    <div id="acoes" style="margin-bottom:16px;">
+        <button class="btn-acao" onclick="abrirTime()">🔄 Trocar Pokémon</button>
+    </div>
+
+    <div id="log"></div>
+    <div id="status"></div>
+</div>
+
+<div id="tela-fim">
+    <h2 id="msg-fim"></h2>
+    <button class="btn-principal" onclick="location.reload()">Jogar Novamente</button>
+</div>
+
+<script>
+    const ws = new WebSocket('ws://localhost:8000/ws/batalha/');
+    let movesDisponiveis = [];
+    let aguardando = false;
+
+    ws.onopen = () => adicionarLog('Conectado ao servidor!', 'sistema');
+    ws.onclose = () => adicionarLog('Desconectado.', 'erro');
+    ws.onerror = () => adicionarLog('Erro de conexão.', 'erro');
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.tipo === 'estado') {
+            mostrarArena();
+            atualizarEstado(data);
+            aguardando = false;
+            habilitarMoves(true);
+            document.getElementById('status').textContent = '';
+
+        } else if (data.tipo === 'log') {
+            adicionarLog(data.mensagem, 'entrada');
+
+        } else if (data.tipo === 'aguardando') {
+            aguardando = true;
+            habilitarMoves(false);
+            document.getElementById('status').textContent = '⏳ Aguardando oponente...';
+
+        } else if (data.tipo === 'fim') {
+            mostrarFim(data.resultado);
+        }
+    };
+
+    function entrarFila() {
+        document.getElementById('tela-inicio').style.display = 'none';
+        adicionarLog('Entrando na fila...', 'sistema');
+        ws.send(JSON.stringify({ comando: 'PLAY' }));
+    }
+
+    function usarMove(nomemove) {
+        if (aguardando) return;
+        adicionarLog('➤ MOVE ' + nomemove, 'sistema');
+        ws.send(JSON.stringify({ comando: 'MOVE ' + nomemove }));
+    }
+
+    function abrirSwitch() {
+        const nome = prompt('Digite o nome do Pokémon para trocar:');
+        if (nome) ws.send(JSON.stringify({ comando: 'SWITCH ' + nome }));
+    }
+
+    function atualizarEstado(data) {
+
+        document.getElementById('seu-nome').textContent = data.seu_pokemon;
+        document.getElementById('seu-tipo').textContent = data.tipo_pokemon;
+        document.getElementById('seu-hp').textContent = `HP: ${data.hp} / ${data.maxHp}`;
+        document.getElementById('seus-stats').textContent =
+            `ATK: ${data.atk}  DEF: ${data.def}  SPD: ${data.spd}`;
+        atualizarBarra('sua-barra', data.hp, data.maxHp);
+
+        document.getElementById('op-nome').textContent = data.op_pokemon;
+        document.getElementById('op-tipo').textContent = data.op_tipo;
+        document.getElementById('op-hp').textContent = `HP: ${data.op_hp} / ${data.op_maxHp}`;
+        atualizarBarra('op-barra', data.op_hp, data.op_maxHp);
+
+        movesDisponiveis = data.moves;
+        renderizarMoves(data.moves);
+        if (data.team) renderizarTime(data.team);
+    }
+
+    function atualizarBarra(id, hp, maxHp) {
+        const pct = Math.max(0, (hp / maxHp) * 100);
+        const barra = document.getElementById(id);
+        barra.style.width = pct + '%';
+        if (pct > 50)      barra.style.background = '#a6e3a1'; // verde
+        else if (pct > 20) barra.style.background = '#f9e2af'; // amarelo
+        else               barra.style.background = '#f38ba8'; // vermelho
+    }
+
+    function renderizarMoves(moves) {
+        const container = document.getElementById('moves');
+        container.innerHTML = '';
+        moves.forEach(m => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-move';
+            btn.innerHTML = `
+                <div class="move-nome">${m.nome}</div>
+                <div class="move-info">POW: ${m.poder} &nbsp;|&nbsp; ${m.tipo}</div>
+            `;
+            btn.onclick = () => usarMove(m.nome);
+            container.appendChild(btn);
+        });
+    }
+
+    function habilitarMoves(enabled) {
+        document.querySelectorAll('.btn-move').forEach(b => b.disabled = !enabled);
+    }
+
+    function mostrarArena() {
+        document.getElementById('tela-inicio').style.display = 'none';
+        document.getElementById('arena').style.display = 'block';
+        document.getElementById('tela-fim').style.display = 'none';
+    }
+
+    function mostrarFim(resultado) {
+        document.getElementById('arena').style.display = 'none';
+        document.getElementById('tela-fim').style.display = 'block';
+        const msg = document.getElementById('msg-fim');
+        if (resultado === 'vitoria') { msg.textContent = '🏆 Você venceu!'; msg.className = 'vitoria'; }
+        else if (resultado === 'derrota') { msg.textContent = '💀 Você perdeu...'; msg.className = 'derrota'; }
+        else { msg.textContent = '🏃 Oponente desconectou. W.O.!'; msg.className = 'wo'; }
+    }
+
+    function adicionarLog(msg, tipo) {
+        const log = document.getElementById('log');
+        const div = document.createElement('div');
+        div.className = tipo;
+        div.textContent = msg;
+        log.appendChild(div);
+        log.scrollTop = log.scrollHeight;
+    }
+    let teamData = [];
+
+    function abrirTime() {
+        if (teamData.length === 0) return;
+        document.getElementById('painel-time').style.display = 'block';
+        document.getElementById('acoes').style.display = 'none';
+    }
+
+    function fecharTime() {
+        document.getElementById('painel-time').style.display = 'none';
+        document.getElementById('acoes').style.display = 'flex';
+    }
+
+    function renderizarTime(team) {
+        teamData = team;
+        const container = document.getElementById('cards-time');
+        container.innerHTML = '';
+
+        team.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'card-time' +
+                (p.ativo ? ' ativo' : '') +
+                (p.desmaiado ? ' desmaiado' : '');
+
+            const pct = Math.max(0, (p.hp / p.maxHp) * 100);
+            const cor = pct > 50 ? '#a6e3a1' : pct > 20 ? '#f9e2af' : '#f38ba8';
+            const label = p.ativo ? '✓ Em batalha' : p.desmaiado ? '✗ Desmaiado' : 'Trocar';
+
+            div.innerHTML = `
+                <div class="ct-nome">${p.nome}</div>
+                <div class="ct-tipo">${p.tipo}</div>
+                <div style="background:#1e1e2e; border-radius:999px; height:6px; margin-bottom:4px;">
+                    <div style="width:${pct}%; height:100%; border-radius:999px; background:${cor};"></div>
+                </div>
+                <div class="ct-hp">${p.hp} / ${p.maxHp}</div>
+                <div style="font-size:0.7rem; color:#6c7086; margin-top:4px;">${label}</div>
+            `;
+
+            if (!p.ativo && !p.desmaiado) {
+                div.onclick = () => trocar(p.nome);
+            }
+
+            container.appendChild(div);
+        });
+    }
+
+    function trocar(nome) {
+        ws.send(JSON.stringify({ comando: 'SWITCH ' + nome }));
+        fecharTime();
+        adicionarLog('➤ SWITCH ' + nome, 'sistema');
+    }
+</script>
+</body>
+</html>

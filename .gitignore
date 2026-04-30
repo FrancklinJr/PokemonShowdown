@@ -1,0 +1,14 @@
+# Java
+*.class
+*.jar
+bin/
+.classpath
+.project
+.settings/
+.idea/
+
+# Python
+web/venv/
+web/__pycache__/
+web/**/__pycache__/
+web/*.pyc
