@@ -1,8 +1,0 @@
-/**
- * 
- */
-/**
- * 
- */
-module pokemon_showdown {
-}
