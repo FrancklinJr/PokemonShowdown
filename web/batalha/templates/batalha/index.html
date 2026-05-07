@@ -219,6 +219,7 @@
     <div class="campo">
 
         <div class="card-pokemon" id="card-seu">
+            <img id="seu-sprite" src="" style="width:80px; height:80px; image-rendering:pixelated;">
             <h3 id="seu-nome">—</h3>
             <span class="tipo" id="seu-tipo">—</span>
             <div class="barra-hp-container">
@@ -229,6 +230,7 @@
         </div>
 
         <div class="card-pokemon" id="card-op">
+            <img id="op-sprite" src="" style="width:80px; height:80px; image-rendering:pixelated; transform:scaleX(-1);">
             <h3 id="op-nome">—</h3>
             <span class="tipo" id="op-tipo">—</span>
             <div class="barra-hp-container">
@@ -313,6 +315,7 @@
     function atualizarEstado(data) {
 
         document.getElementById('seu-nome').textContent = data.seu_pokemon;
+        document.getElementById('seu-sprite').src = data.sprite || '';
         document.getElementById('seu-tipo').textContent = data.tipo_pokemon;
         document.getElementById('seu-hp').textContent = `HP: ${data.hp} / ${data.maxHp}`;
         document.getElementById('seus-stats').textContent =
@@ -320,6 +323,7 @@
         atualizarBarra('sua-barra', data.hp, data.maxHp);
 
         document.getElementById('op-nome').textContent = data.op_pokemon;
+        document.getElementById('op-sprite').src = data.op_sprite || '';
         document.getElementById('op-tipo').textContent = data.op_tipo;
         document.getElementById('op-hp').textContent = `HP: ${data.op_hp} / ${data.op_maxHp}`;
         atualizarBarra('op-barra', data.op_hp, data.op_maxHp);

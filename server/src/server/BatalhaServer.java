@@ -14,19 +14,14 @@ public class BatalhaServer {
 	public static synchronized void addPlayerToQueue(ClientHandler player) {
 	    if (matchmakingQueue.isEmpty()) {
 	        matchmakingQueue.add(player);
-	        player.sendMessage(JsonMessage.log("Aguardando outro jogador..."));
 	    } else {
 	        ClientHandler opponent = matchmakingQueue.poll();
-
-	        player.sendMessage(JsonMessage.log("Partida encontrada!"));
-	        opponent.sendMessage(JsonMessage.log("Partida encontrada!"));
-
 	        Battle battle = new Battle(player, opponent);
 	        player.setBattle(battle);
 	        opponent.setBattle(battle);
 	    }
 	}
-
+	
     public static void main(String[] args) {
 
         int port = 5000;
