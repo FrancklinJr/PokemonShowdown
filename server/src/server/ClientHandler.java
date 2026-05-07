@@ -19,6 +19,11 @@ public class ClientHandler implements Runnable {
 
     private List<Pokemon> team;
     private Pokemon currentPokemon;
+    private String teamData;
+
+    public String getTeamData() {
+        return teamData;
+    }
 
     public ClientHandler(Socket socket) {
 
@@ -71,7 +76,6 @@ public class ClientHandler implements Runnable {
                 if (line.equalsIgnoreCase("PLAY")) {
                     sendMessage(JsonMessage.log("Entrando na fila..."));
                     BatalhaServer.addPlayerToQueue(this);
-
                 } else if (line.startsWith("MOVE")) {
                     if (battle != null) {
                         String moveName = line.substring(5);
@@ -87,6 +91,10 @@ public class ClientHandler implements Runnable {
                     } else {
                         sendMessage(JsonMessage.log("Você ainda não está em uma batalha!"));
                     }
+                } else if (line.startsWith("TEAM")) {
+                	String teamData = line.substring(5).trim();
+                    this.teamData = teamData;
+                    BatalhaServer.addPlayerToQueue(this);
                 }
             }
 

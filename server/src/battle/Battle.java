@@ -3,6 +3,7 @@ package battle;
 import java.util.*;
 
 import data.PokemonDatabase;
+import data.PokemonFactory;
 import model.Move;
 import model.Pokemon;
 import model.PokemonSpecies;
@@ -28,8 +29,8 @@ public class Battle {
     public Battle(ClientHandler p1, ClientHandler p2) {
         this.player1 = p1;
         this.player2 = p2;
-        generateTeam(team1);
-        generateTeam(team2);
+        this.team1 = PokemonFactory.fromTeamData(p1.getTeamData());
+        this.team2 = PokemonFactory.fromTeamData(p2.getTeamData());
         startBattle();
     }
 
@@ -52,20 +53,24 @@ public class Battle {
         Pokemon p2 = team2.get(active2);
 
         player1.sendMessage(JsonMessage.estado(
-            p1.getName(), p1.getCurrentHp(), p1.getMaxHp(),
-            p1.getAttack(), p1.getDefense(), p1.getSpeed(), p1.getType().name(),
-            p2.getName(), p2.getCurrentHp(), p2.getMaxHp(), p2.getType().name(),
-            p1.getMoves(),
-            team1, active1
-        ));
+        	    p1.getName(), p1.getCurrentHp(), p1.getMaxHp(),
+        	    p1.getAttack(), p1.getDefense(), p1.getSpeed(),
+        	    p1.getType().name(), p1.getSprite(),
+        	    p2.getName(), p2.getCurrentHp(), p2.getMaxHp(),
+        	    p2.getType().name(), p2.getSprite(),
+        	    p1.getMoves(), team1, active1
+        	));
+
 
         player2.sendMessage(JsonMessage.estado(
-            p2.getName(), p2.getCurrentHp(), p2.getMaxHp(),
-            p2.getAttack(), p2.getDefense(), p2.getSpeed(), p2.getType().name(),
-            p1.getName(), p1.getCurrentHp(), p1.getMaxHp(), p1.getType().name(),
-            p2.getMoves(),
-            team2, active2
-        ));
+        	    p2.getName(), p2.getCurrentHp(), p2.getMaxHp(),
+        	    p2.getAttack(), p2.getDefense(), p2.getSpeed(),
+        	    p2.getType().name(), p2.getSprite(),
+        	    p1.getName(), p1.getCurrentHp(), p1.getMaxHp(),
+        	    p1.getType().name(), p1.getSprite(),
+        	    p1.getMoves(), team2, active2
+        	));
+
     }
 
     private void performMove(ClientHandler player, int moveIndex) {

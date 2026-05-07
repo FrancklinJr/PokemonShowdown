@@ -12,6 +12,7 @@ public class Pokemon {
     private int attack;
     private int defense;
     private int speed;
+    private String sprite = "";
 
     private List<Move> moves;
 
@@ -72,5 +73,13 @@ public class Pokemon {
 
 	public Type getType() {
 		return species.getType();
+	}
+	
+	public void setSprite(String sprite) {
+	    this.sprite = sprite != null ? sprite : "";
+	}
+
+	public String getSprite() {
+	    return sprite;
 	}
 }
