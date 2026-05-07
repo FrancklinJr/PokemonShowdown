@@ -68,7 +68,8 @@ public class Battle {
         	    p2.getType().name(), p2.getSprite(),
         	    p1.getName(), p1.getCurrentHp(), p1.getMaxHp(),
         	    p1.getType().name(), p1.getSprite(),
-        	    p1.getMoves(), team2, active2
+        	    p2.getMoves(),
+        	    team2, active2
         	));
 
     }
@@ -274,45 +275,41 @@ public class Battle {
             : "Oponente trocou para " + newPokemon.getName() + "!"));
 
         if (player == player1 && moveP2 != null) {
-            resolveTurnAfterSwitch(player2, moveP2);
-            moveP1 = null;
-            moveP2 = null;
-            if (active1 < team1.size() && active2 < team2.size()) {
-                sendActivePokemon();
-            }
-        } else if (player == player2 && moveP1 != null) {
-        } else if (player == player2 && moveP1 != null) {
-            resolveTurnAfterSwitch(player1, moveP1);
-            moveP1 = null;
-            moveP2 = null;
-            if (active1 < team1.size() && active2 < team2.size()) {
-                sendActivePokemon();
-            }
-        } else {
-            if (player == player1) {
-                moveP1 = -1;
-            } else {
-                moveP2 = -1;
-            }
-
-            sendActivePokemon();
-            player.sendMessage(JsonMessage.aguardando());
-
-            if (moveP1 != null && moveP2 != null) {
-                try {
-                    if (moveP1 == -1) {
-                        resolveTurnAfterSwitch(player2, moveP2);
-                    } else {
-                        resolveTurnAfterSwitch(player1, moveP1);
-                    }
-                } finally {
-                    moveP1 = null;
-                    moveP2 = null;
+            if (moveP2 == -1) {
+                moveP1 = null;
+                moveP2 = null;
+                if (active1 < team1.size() && active2 < team2.size()) {
+                    sendActivePokemon();
                 }
+            } else {
+                resolveTurnAfterSwitch(player2, moveP2);
+                moveP1 = null;
+                moveP2 = null;
                 if (active1 < team1.size() && active2 < team2.size()) {
                     sendActivePokemon();
                 }
             }
+        } else if (player == player2 && moveP1 != null) {
+            if (moveP1 == -1) {
+                moveP1 = null;
+                moveP2 = null;
+                if (active1 < team1.size() && active2 < team2.size()) {
+                    sendActivePokemon();
+                }
+            } else {
+                resolveTurnAfterSwitch(player1, moveP1);
+                moveP1 = null;
+                moveP2 = null;
+                if (active1 < team1.size() && active2 < team2.size()) {
+                    sendActivePokemon();
+                }
+            }
+        } else {
+            if (player == player1) moveP1 = -1;
+            else                   moveP2 = -1;
+
+            sendActivePokemon();
+            player.sendMessage(JsonMessage.aguardando());
         }
     }
 
