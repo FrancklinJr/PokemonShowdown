@@ -1,5 +1,6 @@
 package server;
 
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Queue;
@@ -9,26 +10,41 @@ import battle.Battle;
 
 public class BatalhaServer {
 
-	private static Queue<ClientHandler> matchmakingQueue = new ConcurrentLinkedQueue<>();
+    // Token compartilhado entre Django e Java.
+    // Lido de variável de ambiente — NUNCA hard-coded.
+    // Se a variável não estiver definida, o servidor recusa a iniciar.
+    public static final String AUTH_TOKEN = System.getenv("BATALHA_AUTH_TOKEN");
 
-	public static synchronized void addPlayerToQueue(ClientHandler player) {
-	    if (matchmakingQueue.isEmpty()) {
-	        matchmakingQueue.add(player);
-	    } else {
-	        ClientHandler opponent = matchmakingQueue.poll();
-	        Battle battle = new Battle(player, opponent);
-	        player.setBattle(battle);
-	        opponent.setBattle(battle);
-	    }
-	}
-	
+    private static Queue<ClientHandler> matchmakingQueue = new ConcurrentLinkedQueue<>();
+
+    public static synchronized void addPlayerToQueue(ClientHandler player) {
+        if (matchmakingQueue.isEmpty()) {
+            matchmakingQueue.add(player);
+        } else {
+            ClientHandler opponent = matchmakingQueue.poll();
+            Battle battle = new Battle(player, opponent);
+            player.setBattle(battle);
+            opponent.setBattle(battle);
+        }
+    }
+
     public static void main(String[] args) {
+
+        if (AUTH_TOKEN == null || AUTH_TOKEN.isEmpty()) {
+            System.err.println("ERRO: variavel de ambiente BATALHA_AUTH_TOKEN nao definida.");
+            System.err.println("Defina antes de iniciar o servidor, por exemplo:");
+            System.err.println("  export BATALHA_AUTH_TOKEN=\"$(openssl rand -hex 32)\"");
+            System.exit(1);
+        }
 
         int port = 5000;
 
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
+        // Bind explicito em 127.0.0.1 — o servidor so aceita conexoes da
+        // propria maquina. O acesso externo passa obrigatoriamente pelo Django.
+        try (ServerSocket serverSocket = new ServerSocket(
+                port, 50, InetAddress.getByName("127.0.0.1"))) {
 
-            System.out.println("Servidor iniciado na porta " + port);
+            System.out.println("Servidor iniciado em 127.0.0.1:" + port);
 
             while (true) {
 
@@ -43,7 +59,7 @@ public class BatalhaServer {
             e.printStackTrace();
         }
     }
-    
+
     public static void removeFromQueue(ClientHandler player) {
         matchmakingQueue.remove(player);
     }
