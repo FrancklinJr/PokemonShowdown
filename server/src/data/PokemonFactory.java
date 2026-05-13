@@ -5,37 +5,122 @@ import java.util.*;
 
 public class PokemonFactory {
 
-	public static List<Pokemon> fromTeamData(String teamData) {
+    // Limites sanos para os stats. Qualquer valor fora disso e clampado
+    // ou faz o Pokemon ser descartado.
+    private static final int MAX_HP        = 300;
+    private static final int MAX_ATK       = 200;
+    private static final int MAX_DEF       = 200;
+    private static final int MAX_SPD       = 200;
+    private static final int MIN_STAT      = 1;
+    private static final int MAX_MOVE_POW  = 200;
+    private static final int MAX_TEAM_SIZE = 6;
+    private static final int MAX_MOVES_PER_POKEMON = 4;
+    private static final int MAX_NAME_LEN  = 32;
+
+    public static List<Pokemon> fromTeamData(String teamData) {
         List<Pokemon> team = new ArrayList<>();
+        if (teamData == null || teamData.isEmpty()) return team;
+
         String[] pokemons = teamData.split(";");
 
         for (String p : pokemons) {
-            String[] parts = p.split(",");
-            if (parts.length < 8) continue;
+            if (team.size() >= MAX_TEAM_SIZE) break;
 
-            String nome    = parts[0];
-            int hp         = Integer.parseInt(parts[1]);
-            int atk        = Integer.parseInt(parts[2]);
-            int def        = Integer.parseInt(parts[3]);
-            int spd        = Integer.parseInt(parts[4]);
-            Type tipo      = Type.valueOf(parts[5]);
-            String sprite  = parts[6];
-            String movesRaw = parts[7];
+            try {
+                String[] parts = p.split(",");
+                if (parts.length < 8) continue;
 
-            List<Move> moves = new ArrayList<>();
-            for (String m : movesRaw.split("\\|")) {
-                String[] mp = m.split(":");
-                if (mp.length == 3) {
-                    moves.add(new Move(mp[0], Integer.parseInt(mp[1]), Type.valueOf(mp[2])));
+                String nome = sanitize(parts[0]);
+                if (nome.isEmpty()) continue;
+
+                int hp  = clamp(parseIntSafe(parts[1]), MIN_STAT, MAX_HP);
+                int atk = clamp(parseIntSafe(parts[2]), MIN_STAT, MAX_ATK);
+                int def = clamp(parseIntSafe(parts[3]), MIN_STAT, MAX_DEF);
+                int spd = clamp(parseIntSafe(parts[4]), MIN_STAT, MAX_SPD);
+
+                Type tipo = parseTypeSafe(parts[5]);
+                String sprite = sanitizeSprite(parts[6]);
+                String movesRaw = parts[7];
+
+                List<Move> moves = new ArrayList<>();
+                for (String m : movesRaw.split("\\|")) {
+                    if (moves.size() >= MAX_MOVES_PER_POKEMON) break;
+                    String[] mp = m.split(":");
+                    if (mp.length != 3) continue;
+
+                    String moveName = sanitize(mp[0]);
+                    if (moveName.isEmpty()) continue;
+
+                    int power = clamp(parseIntSafe(mp[1]), 0, MAX_MOVE_POW);
+                    Type moveType = parseTypeSafe(mp[2]);
+
+                    moves.add(new Move(moveName, power, moveType));
                 }
-            }
 
-            PokemonSpecies species = new PokemonSpecies(nome, tipo, hp, atk, def, spd, moves);
-            Pokemon pokemon = new Pokemon(species);
-            pokemon.setSprite(sprite);
-            team.add(pokemon);
+                if (moves.isEmpty()) continue; // sem moves, descarta o Pokemon
+
+                PokemonSpecies species = new PokemonSpecies(nome, tipo, hp, atk, def, spd, moves);
+                Pokemon pokemon = new Pokemon(species);
+                pokemon.setSprite(sprite);
+                team.add(pokemon);
+
+            } catch (Exception e) {
+                // Qualquer entrada malformada simplesmente vira um Pokemon
+                // descartado — nao derruba a batalha inteira.
+                System.err.println("Pokemon ignorado por dados invalidos: " + e.getMessage());
+            }
         }
 
         return team;
+    }
+
+    private static int parseIntSafe(String s) {
+        try {
+            return Integer.parseInt(s.trim());
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private static int clamp(int value, int min, int max) {
+        if (value < min) return min;
+        if (value > max) return max;
+        return value;
+    }
+
+    private static Type parseTypeSafe(String raw) {
+        try {
+            return Type.valueOf(raw.trim().toUpperCase());
+        } catch (Exception e) {
+            return Type.NORMAL;
+        }
+    }
+
+    /**
+     * Remove caracteres de controle e limita o tamanho. Evita que nomes
+     * com \n, \r ou separadores (, ; |) bagunce o protocolo.
+     */
+    private static String sanitize(String s) {
+        if (s == null) return "";
+        String cleaned = s.replaceAll("[\\p{Cntrl},;|]", "").trim();
+        if (cleaned.length() > MAX_NAME_LEN) {
+            cleaned = cleaned.substring(0, MAX_NAME_LEN);
+        }
+        return cleaned;
+    }
+
+    /**
+     * Aceita apenas URLs http(s) para sprites — evita injecao de
+     * javascript: ou data: no front-end.
+     */
+    private static String sanitizeSprite(String s) {
+        if (s == null) return "";
+        String cleaned = s.replaceAll("[\\p{Cntrl},;|\"'<>]", "").trim();
+        if (cleaned.isEmpty()) return "";
+        if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
+            return "";
+        }
+        if (cleaned.length() > 512) return "";
+        return cleaned;
     }
 }
