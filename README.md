@@ -17,7 +17,7 @@ O sistema combina um **servidor de batalha em Java** (responsável pela lógica 
 O projeto adota uma **arquitetura distribuída em três camadas**:
 
 ```
-┌─────────────┐    WebSocket    ┌───────────────────┐    TCP Socket    ┌────────────────┐
+┌─────────────┐    WebSocket   ┌───────────────────┐    TCP Socket    ┌────────────────┐
 │   Browser   │ ◄────────────► │ Django + Channels │ ◄──────────────► │ Servidor Java  │
 │ (HTML/JS)   │     JSON       │   (Python ASGI)   │  TEAM/MOVE/etc.  │   (porta 5000) │
 └─────────────┘                └───────────────────┘                  └────────────────┘
