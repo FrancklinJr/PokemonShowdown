@@ -10,22 +10,38 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-qfj2ir#d)v_hq9pxw4vs(lo@b516g7nc84qy^+(p1*h=n-g+3c'
+# Lida da variavel de ambiente DJANGO_SECRET_KEY. Em desenvolvimento, gere com:
+#   python -c "import secrets; print(secrets.token_urlsafe(50))"
+# e exporte: export DJANGO_SECRET_KEY="..."
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    raise RuntimeError(
+        "DJANGO_SECRET_KEY nao definida. Exporte a variavel de ambiente "
+        "antes de iniciar o Django."
+    )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', '0') == '1'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if h.strip()
+]
+
+# Para o WebSocket / formularios em producao com HTTPS, defina:
+#   export DJANGO_CSRF_TRUSTED_ORIGINS="https://seudominio.com"
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',')
+    if o.strip()
+]
 
 
 # Application definition
@@ -127,19 +143,17 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 
-def _listen_java(self):
-    try:
-        for linha in self.java_file:
-            linha = linha.strip()
-            if not linha or not self.running:
-                continue
-
-            print(f"Java → browser: {linha}")  # ← adiciona isso
-
-            future = asyncio.run_coroutine_threadsafe(
-                self.send(text_data=linha),
-                self.loop
-            )
-            future.result(timeout=5)
-    except Exception as e:
-        print(f"Listener encerrado: {e}")
+# ---------------------------------------------------------------------------
+# Cabecalhos de seguranca (ativados quando DEBUG = False).
+# ---------------------------------------------------------------------------
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 ano
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
