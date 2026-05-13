@@ -1,23 +1,90 @@
 import json
+import os
+import re
 import socket
 import asyncio
 import threading
+import time
 from channels.generic.websocket import AsyncWebsocketConsumer
 from batalha.pokeapi import buscar_time_aleatorio
 
-JAVA_HOST = 'localhost'
-JAVA_PORT = 5000
+JAVA_HOST = os.environ.get('JAVA_HOST', '127.0.0.1')
+JAVA_PORT = int(os.environ.get('JAVA_PORT', '5000'))
+
+# Token compartilhado entre Django e o servidor Java.
+# Tem que ser o mesmo valor passado em BATALHA_AUTH_TOKEN para o processo Java.
+BATALHA_AUTH_TOKEN = os.environ.get('BATALHA_AUTH_TOKEN')
+
+# Comandos que o cliente do browser pode enviar. Qualquer coisa fora dessa
+# lista e ignorada — impede injecao de AUTH, TEAM, etc. via WebSocket.
+COMANDOS_PERMITIDOS = {'PLAY', 'MOVE', 'SWITCH'}
+
+# Rate limit: maximo de comandos por janela de 1 segundo por conexao.
+MAX_COMANDOS_POR_SEGUNDO = 5
+
+# Tamanho maximo de uma mensagem do cliente (em bytes).
+MAX_MSG_BYTES = 2048
+
+# Tamanho maximo do nome de um movimento/pokemon vindo do cliente.
+MAX_ARG_LEN = 64
 
 fila = []
 fila_lock = asyncio.Lock()
 
+
+def comando_sanitizado(raw_comando: str):
+    """
+    Recebe a string que veio do browser, valida formato e devolve uma
+    tupla (verbo, argumento) limpa. Devolve None se o comando for invalido.
+    """
+    if not isinstance(raw_comando, str):
+        return None
+    raw_comando = raw_comando.strip()
+    if not raw_comando or len(raw_comando) > MAX_MSG_BYTES:
+        return None
+
+    # Quebra em verbo + resto, ignorando quebras de linha e CRLF.
+    if '\n' in raw_comando or '\r' in raw_comando:
+        return None
+
+    partes = raw_comando.split(' ', 1)
+    verbo = partes[0].upper()
+    if verbo not in COMANDOS_PERMITIDOS:
+        return None
+
+    if verbo == 'PLAY':
+        if len(partes) > 1 and partes[1].strip():
+            return None
+        return ('PLAY', '')
+
+    if len(partes) < 2:
+        return None
+
+    arg = partes[1].strip()
+    if not arg or len(arg) > MAX_ARG_LEN:
+        return None
+    # So aceita letras, numeros, espaco, hifen — sem caracteres de controle
+    # ou separadores do protocolo TCP (, ; |).
+    if not re.fullmatch(r'[A-Za-z0-9 \-]+', arg):
+        return None
+
+    return (verbo, arg)
+
+
 class BatalhaConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
+        if not BATALHA_AUTH_TOKEN:
+            await self.close(code=4500)
+            return
         await self.accept()
         self.running = True
         self.loop = asyncio.get_running_loop()
         self.java_socket = None
+        self.in_queue = False
+        # Estado de rate limit
+        self._janela_inicio = 0.0
+        self._comandos_na_janela = 0
         print("Jogador conectado.")
 
     async def disconnect(self, code):
@@ -25,20 +92,74 @@ class BatalhaConsumer(AsyncWebsocketConsumer):
         if self.java_socket:
             try:
                 self.java_socket.close()
-            except:
+            except Exception:
                 pass
+        # Garante que a conexao saia da fila se desconectar antes do match.
+        async with fila_lock:
+            global fila
+            fila = [item for item in fila if item['ws'] is not self]
         print("Jogador desconectado.")
 
-    async def receive(self, text_data):
-        data = json.loads(text_data)
-        comando = data.get('comando', '')
-        print(f"Comando: {comando}")
+    def _rate_limit_ok(self) -> bool:
+        agora = time.monotonic()
+        if agora - self._janela_inicio >= 1.0:
+            self._janela_inicio = agora
+            self._comandos_na_janela = 1
+            return True
+        self._comandos_na_janela += 1
+        return self._comandos_na_janela <= MAX_COMANDOS_POR_SEGUNDO
 
-        if comando == 'PLAY':
+    async def receive(self, text_data=None, bytes_data=None):
+        # Recusa frames binarios e mensagens muito grandes.
+        if bytes_data is not None:
+            return
+        if text_data is None or len(text_data) > MAX_MSG_BYTES:
+            return
+
+        if not self._rate_limit_ok():
+            await self.send(text_data=json.dumps(
+                {'tipo': 'log', 'mensagem': 'Muitos comandos. Aguarde um instante.'}
+            ))
+            return
+
+        try:
+            data = json.loads(text_data)
+        except (json.JSONDecodeError, ValueError):
+            return
+
+        if not isinstance(data, dict):
+            return
+
+        validado = comando_sanitizado(data.get('comando', ''))
+        if validado is None:
+            await self.send(text_data=json.dumps(
+                {'tipo': 'log', 'mensagem': 'Comando invalido.'}
+            ))
+            return
+
+        verbo, arg = validado
+        print(f"Comando aceito: {verbo} {arg}")
+
+        if verbo == 'PLAY':
+            if self.in_queue or self.java_socket:
+                # Ja esta na fila ou em batalha — ignora PLAY repetido.
+                return
+            self.in_queue = True
             await self.entrar_na_fila()
-        else:
-            if self.java_socket:
-                self.java_socket.sendall((comando + '\n').encode('utf-8'))
+            return
+
+        # MOVE / SWITCH so fazem sentido se ja estiver em batalha.
+        if not self.java_socket:
+            await self.send(text_data=json.dumps(
+                {'tipo': 'log', 'mensagem': 'Voce ainda nao esta em uma batalha.'}
+            ))
+            return
+
+        comando_para_java = f"{verbo} {arg}\n".encode('utf-8')
+        try:
+            self.java_socket.sendall(comando_para_java)
+        except Exception as e:
+            print(f"Falha ao enviar para Java: {e}")
 
     async def entrar_na_fila(self):
         await self.send(text_data=json.dumps(
@@ -65,8 +186,16 @@ class BatalhaConsumer(AsyncWebsocketConsumer):
                     {'tipo': 'log', 'mensagem': 'Partida encontrada!'}
                 ))
 
-                await self.conectar_java()
-                await opponent['ws'].conectar_java()
+                try:
+                    await self.conectar_java()
+                    await opponent['ws'].conectar_java()
+                except Exception as e:
+                    print(f"Falha ao conectar no servidor Java: {e}")
+                    err = json.dumps({'tipo': 'log',
+                                      'mensagem': 'Servidor de batalha indisponivel.'})
+                    await self.send(text_data=err)
+                    await opponent['ws'].send(text_data=err)
+                    return
 
                 team1_str = montar_team_str(self.team)
                 team2_str = montar_team_str(opponent['ws'].team)
@@ -82,7 +211,13 @@ class BatalhaConsumer(AsyncWebsocketConsumer):
 
     async def conectar_java(self):
         self.java_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Timeout para nao travar o servidor inteiro se o Java cair.
+        self.java_socket.settimeout(5)
         self.java_socket.connect((JAVA_HOST, JAVA_PORT))
+        # Primeira coisa: autenticar a conexao TCP com o servidor Java.
+        self.java_socket.sendall(f'AUTH {BATALHA_AUTH_TOKEN}\n'.encode('utf-8'))
+        # Apos handshake, sai do timeout — quem le e a thread listener.
+        self.java_socket.settimeout(None)
         self.java_file = self.java_socket.makefile('r', encoding='utf-8')
 
         self.listener = threading.Thread(target=self._listen_java, daemon=True)
@@ -104,14 +239,41 @@ class BatalhaConsumer(AsyncWebsocketConsumer):
             print(f"Listener encerrado: {e}")
 
 
+# Caracteres proibidos no payload do TEAM porque sao separadores do protocolo.
+_TEAM_BLOCKLIST = re.compile(r'[,;|\n\r\t]')
+
+
+def _limpar(valor) -> str:
+    return _TEAM_BLOCKLIST.sub('', str(valor)).strip()[:64]
+
+
 def montar_team_str(team):
+    """
+    Monta a string TEAM no formato esperado pelo servidor Java,
+    removendo separadores do protocolo de todos os campos vindos da PokeAPI.
+    """
     pokemons = []
     for p in team:
-        moves_str = '|'.join(
-            f"{m['nome']}:{m['poder']}:{m['tipo']}" for m in p['moves']
-        )
-        sprite = p.get('sprite') or ''
+        moves_limpos = []
+        for m in p.get('moves', []):
+            nome = _limpar(m.get('nome', ''))
+            poder = int(m.get('poder', 0))
+            tipo = _limpar(m.get('tipo', 'NORMAL'))
+            if not nome or not tipo:
+                continue
+            moves_limpos.append(f"{nome}:{poder}:{tipo}")
+        moves_str = '|'.join(moves_limpos)
+
+        sprite_raw = p.get('sprite') or ''
+        # So aceita URLs http(s) — bate com a validacao do lado Java.
+        if sprite_raw.startswith(('http://', 'https://')):
+            sprite = _limpar(sprite_raw.replace(',', '').replace(';', '').replace('|', ''))
+        else:
+            sprite = ''
+
         pokemons.append(
-            f"{p['nome']},{p['hp']},{p['atk']},{p['def']},{p['spd']},{p['tipo']},{sprite},{moves_str}"
+            f"{_limpar(p['nome'])},"
+            f"{int(p['hp'])},{int(p['atk'])},{int(p['def'])},{int(p['spd'])},"
+            f"{_limpar(p['tipo'])},{sprite},{moves_str}"
         )
     return ';'.join(pokemons)
