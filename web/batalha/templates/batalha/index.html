@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <title>Pokémon Showdown</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             background: #1e1e2e;
@@ -17,49 +22,166 @@
             padding: 24px;
         }
 
-        h1 { color: #cba6f7; margin-bottom: 24px; font-size: 1.6rem; }
+        h1 {
+            color: #cba6f7;
+            margin-bottom: 24px;
+            font-size: 1.6rem;
+        }
 
-        #tela-inicio { text-align: center; }
-        #tela-inicio p { color: #a6adc8; margin-bottom: 16px; }
+        #tela-inicio {
+            text-align: center;
+        }
 
-        #arena { display: none; width: 100%; max-width: 800px; }
-
-        .campo {
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
+        #tela-inicio p {
+            color: #a6adc8;
             margin-bottom: 16px;
         }
 
-        .card-pokemon {
-            background: #181825;
-            border: 1px solid #313244;
+        #arena {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .campo {
+            position: relative;
+            width: 100%;
+            height: 440px;
+            background: linear-gradient(to bottom, #d0e8f2, #a3d5d3);
             border-radius: 12px;
-            padding: 16px;
-            flex: 1;
+            margin-bottom: 20px;
+            border: 4px solid #45475a;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
         }
 
-        .card-pokemon h3 {
-            font-size: 1.1rem;
-            margin-bottom: 4px;
+        /* Bloco do Oponente */
+        .bloco-op {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 180px;
         }
 
-        .card-pokemon .tipo {
+        .sprite-wrapper-op {
+            position: relative;
+            width: 200px;
+            height: 180px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .plataforma-op {
+            position: absolute;
+            bottom: 0px;
+            width: 160px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        #op-sprite {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            image-rendering: pixelated;
+            filter: drop-shadow(0px 10px 5px rgba(0, 0, 0, 0.3));
+            z-index: 2;
+        }
+
+        /* Bloco do Jogador */
+        .bloco-seu {
+            position: absolute;
+            bottom: 20px;
+            left: 40px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 240px;
+        }
+
+        .sprite-wrapper-seu {
+            position: relative;
+            width: 280px;
+            height: 240px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .plataforma-seu {
+            position: absolute;
+            bottom: 0px;
+            width: 240px;
+            height: 55px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        #seu-sprite {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            image-rendering: pixelated;
+            filter: drop-shadow(0px 10px 5px rgba(0, 0, 0, 0.3));
+            z-index: 2;
+        }
+
+        .info-box {
+            position: relative;
+            background: #f8f8d8;
+            border: 4px solid #6c7086;
+            border-radius: 8px;
+            padding: 12px 16px;
+            width: 300px;
+            color: #1e1e2e;
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        #info-op {
+            border-bottom-right-radius: 20px;
+        }
+
+        #info-seu {
+            border-top-left-radius: 20px;
+        }
+
+        .info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-transform: capitalize;
+        }
+
+        .tipo {
             font-size: 0.75rem;
             background: #313244;
-            padding: 2px 8px;
+            padding: 3px 8px;
             border-radius: 999px;
-            display: inline-block;
-            margin-bottom: 10px;
-            color: #a6adc8;
+            color: #cdd6f4;
+            text-transform: uppercase;
         }
 
         .barra-hp-container {
-            background: #313244;
+            background: #45475a;
             border-radius: 999px;
-            height: 10px;
-            margin-bottom: 4px;
+            height: 12px;
+            width: 100%;
+            margin-bottom: 6px;
             overflow: hidden;
+            border: 2px solid #313244;
         }
 
         .barra-hp {
@@ -69,79 +191,192 @@
         }
 
         .hp-texto {
-            font-size: 0.8rem;
-            color: #a6adc8;
-            margin-bottom: 8px;
+            text-align: right;
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #313244;
         }
 
         .stats {
             font-size: 0.75rem;
             color: #6c7086;
+            margin-top: 6px;
+        }
+
+        .console-batalha {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 16px;
+            background: #181825;
+            border: 4px solid #45475a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .console-batalha {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .painel-esquerdo {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .log-container-retro {
+            background: #11111b;
+            border: 3px solid #313244;
+            border-radius: 8px;
+            padding: 10px;
+            height: 170px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #log {
+            flex: 1;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #cdd6f4;
+            padding-right: 5px;
+        }
+
+        #log::-webkit-scrollbar {
+            width: 6px;
+        }
+        #log::-webkit-scrollbar-track {
+            background: #11111b;
+        }
+        #log::-webkit-scrollbar-thumb {
+            background: #313244;
+            border-radius: 999px;
+        }
+
+        #log .entrada {
+            color: #a6e3a1;
+        }
+
+        #log .sistema {
+            color: #89dceb;
+        }
+
+        #log .erro {
+            color: #f38ba8;
+        }
+
+        #status {
+            font-size: 0.85rem;
+            color: #fab387;
+            font-weight: bold;
+            min-height: 20px;
+        }
+
+        .painel-direito {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            justify-content: space-between;
         }
 
         #moves {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-bottom: 16px;
+            flex: 1;
         }
 
         .btn-move {
-            background: #313244;
-            border: 1px solid #45475a;
-            color: #cdd6f4;
-            padding: 12px;
-            border-radius: 10px;
+            border: 3px solid #45475a;
+            border-radius: 8px;
+            padding: 10px 14px;
             cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+            font-family: inherit;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
             text-align: left;
-            transition: background 0.2s;
         }
 
-        .btn-move:hover { background: #45475a; }
-        .btn-move:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-move .move-nome {
+            font-weight: bold;
+            font-size: 1rem;
+            color: #ffffff;
+            margin-bottom: 2px;
+        }
 
-        .btn-move .move-nome { font-weight: bold; font-size: 0.95rem; }
-        .btn-move .move-info { font-size: 0.75rem; color: #a6adc8; margin-top: 2px; }
+        .btn-move .move-info {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 500;
+        }
+
+        .btn-tipo-normal { background: #a8a77a; border-color: #8a8963; }
+        .btn-tipo-fire { background: #ff4422; border-color: #cc3311; }
+        .btn-tipo-water { background: #3399ff; border-color: #2277dd; }
+        .btn-tipo-grass { background: #77cc55; border-color: #55aa33; }
+        .btn-tipo-electric { background: #eedd22; border-color: #ccbb11; text-shadow: none; }
+        .btn-tipo-electric .move-nome { color: #222; }
+        .btn-tipo-electric .move-info { color: #444; }
+        .btn-tipo-psychic { background: #ff5599; border-color: #dd3377; }
+        .btn-tipo-ghost { background: #775599; border-color: #553377; }
+
+        .btn-move:hover:not(:disabled) {
+            filter: brightness(1.1);
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-move:active:not(:disabled) {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-move:disabled {
+            opacity: 0.4;
+            filter: grayscale(0.6);
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2) !important;
+        }
 
         #acoes {
             display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
+            width: 100%;
         }
 
         .btn-acao {
-            background: #45475a;
-            border: none;
+            width: 100%;
+            background: #313244;
+            border: 3px solid #45475a;
             color: #cdd6f4;
-            padding: 10px 20px;
+            padding: 10px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-        .btn-acao:hover { background: #585b70; }
-
-        #log {
-            background: #181825;
-            border: 1px solid #313244;
-            border-radius: 10px;
-            padding: 12px;
-            height: 160px;
-            overflow-y: auto;
-            font-size: 0.85rem;
-            line-height: 1.6;
+            font-size: 0.95rem;
+            font-weight: bold;
+            transition: all 0.15s ease;
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
         }
 
-        #log .entrada { color: #a6e3a1; }
-        #log .sistema { color: #89dceb; }
-        #log .erro    { color: #f38ba8; }
+        .btn-acao:hover {
+            background: #45475a;
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3);
+        }
 
-        #status {
-            margin-top: 12px;
-            font-size: 0.85rem;
-            color: #fab387;
-            min-height: 20px;
-            text-align: center;
+        .btn-acao:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1);
         }
 
         .btn-principal {
@@ -155,16 +390,32 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        .btn-principal:hover { background: #b4befe; }
+
+        .btn-principal:hover {
+            background: #b4befe;
+        }
 
         #tela-fim {
             display: none;
             text-align: center;
         }
-        #tela-fim h2 { font-size: 2rem; margin-bottom: 16px; }
-        #tela-fim .vitoria { color: #a6e3a1; }
-        #tela-fim .derrota { color: #f38ba8; }
-        #tela-fim .wo      { color: #fab387; }
+
+        #tela-fim h2 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        #tela-fim .vitoria {
+            color: #a6e3a1;
+        }
+
+        #tela-fim .derrota {
+            color: #f38ba8;
+        }
+
+        #tela-fim .wo {
+            color: #fab387;
+        }
 
         #painel-time {
             background: #181825;
@@ -200,219 +451,262 @@
             cursor: not-allowed;
         }
 
-        .card-time .ct-nome { font-weight: bold; font-size: 0.9rem; margin-bottom: 4px; }
-        .card-time .ct-tipo { font-size: 0.7rem; background: #45475a; padding: 2px 6px;
-                              border-radius: 999px; display: inline-block; margin-bottom: 6px; }
-        .card-time .ct-hp   { font-size: 0.75rem; color: #a6adc8; }
+        .card-time .ct-nome {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .card-time .ct-tipo {
+            font-size: 0.7rem;
+            background: #45475a;
+            padding: 2px 6px;
+            border-radius: 999px;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+
+        .card-time .ct-hp {
+            font-size: 0.75rem;
+            color: #a6adc8;
+        }
     </style>
 </head>
+
 <body>
 
-<h1>⚔️ Pokémon Showdown</h1>
+    <h1>⚔️ Pokémon Showdown</h1>
 
-<div id="tela-inicio">
-    <p>Conectado ao servidor. Clique para entrar na fila!</p>
-    <button class="btn-principal" onclick="entrarFila()">Procurar Batalha</button>
-</div>
+    <div id="tela-inicio">
+        <p>Conectado ao servidor. Clique para entrar na fila!</p>
+        <button class="btn-principal" onclick="entrarFila()">Procurar Batalha</button>
+    </div>
 
-<div id="arena">
-    <div class="campo">
-
-        <div class="card-pokemon" id="card-seu">
-            <img id="seu-sprite" src="" style="width:80px; height:80px; image-rendering:pixelated;">
-            <h3 id="seu-nome">—</h3>
-            <span class="tipo" id="seu-tipo">—</span>
-            <div class="barra-hp-container">
-                <div class="barra-hp" id="sua-barra" style="width:100%; background:#a6e3a1;"></div>
+    <div id="arena">
+        <div class="campo">
+            <div class="bloco-op">
+                <div class="info-box" id="info-op">
+                    <div class="info-header">
+                        <span id="op-nome">—</span>
+                        <span class="tipo" id="op-tipo">—</span>
+                    </div>
+                    <div class="barra-hp-container">
+                        <div class="barra-hp" id="op-barra" style="width:100%; background:#a6e3a1;"></div>
+                    </div>
+                    <div class="hp-texto" id="op-hp">— / —</div>
+                </div>
+                <div class="sprite-wrapper-op">
+                    <div class="plataforma-op"></div>
+                    <img id="op-sprite" src="">
+                </div>
             </div>
-            <div class="hp-texto" id="seu-hp">— / —</div>
-            <div class="stats" id="seus-stats"></div>
-        </div>
 
-        <div class="card-pokemon" id="card-op">
-            <img id="op-sprite" src="" style="width:80px; height:80px; image-rendering:pixelated; transform:scaleX(-1);">
-            <h3 id="op-nome">—</h3>
-            <span class="tipo" id="op-tipo">—</span>
-            <div class="barra-hp-container">
-                <div class="barra-hp" id="op-barra" style="width:100%; background:#a6e3a1;"></div>
+            <div class="bloco-seu">
+                <div class="sprite-wrapper-seu">
+                    <div class="plataforma-seu"></div>
+                    <img id="seu-sprite" src="">
+                </div>
+                <div class="info-box" id="info-seu">
+                    <div class="info-header">
+                        <span id="seu-nome">—</span>
+                        <span class="tipo" id="seu-tipo">—</span>
+                    </div>
+                    <div class="barra-hp-container">
+                        <div class="barra-hp" id="sua-barra" style="width:100%; background:#a6e3a1;"></div>
+                    </div>
+                    <div class="hp-texto" id="seu-hp">— / —</div>
+                    <div class="stats" id="seus-stats"></div>
+                </div>
             </div>
-            <div class="hp-texto" id="op-hp">— / —</div>
+        </div>
+
+        <div id="painel-time" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-size:0.85rem; color:#a6adc8;">Seu time — clique para trocar</span>
+                <button onclick="fecharTime()"
+                    style="background:none; border:none; color:#a6adc8; cursor:pointer; font-size:1.2rem;">✕</button>
+            </div>
+            <div id="cards-time" style="display:flex; gap:10px;"></div>
+        </div>
+
+        <div class="console-batalha">
+            <div class="painel-esquerdo">
+                <div class="log-container-retro">
+                    <div id="log"></div>
+                </div>
+                <div id="status"></div>
+            </div>
+
+            <div class="painel-direito">
+                <div id="moves"></div>
+                <div id="acoes">
+                    <button class="btn-acao" onclick="abrirTime()">🔄 Trocar Pokémon</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="moves"></div>
-
-    <div id="painel-time" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="font-size:0.85rem; color:#a6adc8;">Seu time — clique para trocar</span>
-            <button onclick="fecharTime()" style="background:none; border:none; color:#a6adc8; cursor:pointer; font-size:1.2rem;">✕</button>
-        </div>
-        <div id="cards-time" style="display:flex; gap:10px;"></div>
+    <div id="tela-fim">
+        <h2 id="msg-fim"></h2>
+        <button class="btn-principal" onclick="location.reload()">Jogar Novamente</button>
     </div>
 
-    <div id="acoes" style="margin-bottom:16px;">
-        <button class="btn-acao" onclick="abrirTime()">🔄 Trocar Pokémon</button>
-    </div>
+    <script>
+        const ws = new WebSocket('ws://localhost:8000/ws/batalha/');
+        let movesDisponiveis = [];
+        let aguardando = false;
 
-    <div id="log"></div>
-    <div id="status"></div>
-</div>
+        ws.onopen = () => adicionarLog('Conectado ao servidor!', 'sistema');
+        ws.onclose = () => adicionarLog('Desconectado.', 'erro');
+        ws.onerror = () => adicionarLog('Erro de conexão.', 'erro');
 
-<div id="tela-fim">
-    <h2 id="msg-fim"></h2>
-    <button class="btn-principal" onclick="location.reload()">Jogar Novamente</button>
-</div>
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
 
-<script>
-    const ws = new WebSocket('ws://localhost:8000/ws/batalha/');
-    let movesDisponiveis = [];
-    let aguardando = false;
+            if (data.tipo === 'estado') {
+                mostrarArena();
+                atualizarEstado(data);
+                aguardando = false;
+                habilitarMoves(true);
+                document.getElementById('status').textContent = '';
 
-    ws.onopen = () => adicionarLog('Conectado ao servidor!', 'sistema');
-    ws.onclose = () => adicionarLog('Desconectado.', 'erro');
-    ws.onerror = () => adicionarLog('Erro de conexão.', 'erro');
+            } else if (data.tipo === 'log') {
+                adicionarLog(data.mensagem, 'entrada');
 
-    ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
+            } else if (data.tipo === 'aguardando') {
+                aguardando = true;
+                habilitarMoves(false);
+                document.getElementById('status').textContent = '⏳ Aguardando oponente...';
 
-        if (data.tipo === 'estado') {
-            mostrarArena();
-            atualizarEstado(data);
-            aguardando = false;
-            habilitarMoves(true);
-            document.getElementById('status').textContent = '';
+            } else if (data.tipo === 'fim') {
+                mostrarFim(data.resultado);
+            }
+        };
 
-        } else if (data.tipo === 'log') {
-            adicionarLog(data.mensagem, 'entrada');
-
-        } else if (data.tipo === 'aguardando') {
-            aguardando = true;
-            habilitarMoves(false);
-            document.getElementById('status').textContent = '⏳ Aguardando oponente...';
-
-        } else if (data.tipo === 'fim') {
-            mostrarFim(data.resultado);
+        function entrarFila() {
+            document.getElementById('tela-inicio').style.display = 'none';
+            adicionarLog('Entrando na fila...', 'sistema');
+            ws.send(JSON.stringify({ comando: 'PLAY' }));
         }
-    };
 
-    function entrarFila() {
-        document.getElementById('tela-inicio').style.display = 'none';
-        adicionarLog('Entrando na fila...', 'sistema');
-        ws.send(JSON.stringify({ comando: 'PLAY' }));
-    }
+        function usarMove(nomemove) {
+            if (aguardando) return;
+            adicionarLog('➤ MOVE ' + nomemove, 'sistema');
+            ws.send(JSON.stringify({ comando: 'MOVE ' + nomemove }));
+        }
 
-    function usarMove(nomemove) {
-        if (aguardando) return;
-        adicionarLog('➤ MOVE ' + nomemove, 'sistema');
-        ws.send(JSON.stringify({ comando: 'MOVE ' + nomemove }));
-    }
+        function abrirSwitch() {
+            const nome = prompt('Digite o nome do Pokémon para trocar:');
+            if (nome) ws.send(JSON.stringify({ comando: 'SWITCH ' + nome }));
+        }
 
-    function abrirSwitch() {
-        const nome = prompt('Digite o nome do Pokémon para trocar:');
-        if (nome) ws.send(JSON.stringify({ comando: 'SWITCH ' + nome }));
-    }
+        function atualizarEstado(data) {
 
-    function atualizarEstado(data) {
+            document.getElementById('seu-nome').textContent = data.seu_pokemon;
+            document.getElementById('seu-sprite').src = data.sprite || '';
+            document.getElementById('seu-tipo').textContent = data.tipo_pokemon;
+            document.getElementById('seu-hp').textContent = `HP: ${data.hp} / ${data.maxHp}`;
+            document.getElementById('seus-stats').textContent =
+                `ATK: ${data.atk}  DEF: ${data.def}  SPD: ${data.spd}`;
+            atualizarBarra('sua-barra', data.hp, data.maxHp);
 
-        document.getElementById('seu-nome').textContent = data.seu_pokemon;
-        document.getElementById('seu-sprite').src = data.sprite || '';
-        document.getElementById('seu-tipo').textContent = data.tipo_pokemon;
-        document.getElementById('seu-hp').textContent = `HP: ${data.hp} / ${data.maxHp}`;
-        document.getElementById('seus-stats').textContent =
-            `ATK: ${data.atk}  DEF: ${data.def}  SPD: ${data.spd}`;
-        atualizarBarra('sua-barra', data.hp, data.maxHp);
+            document.getElementById('op-nome').textContent = data.op_pokemon;
 
-        document.getElementById('op-nome').textContent = data.op_pokemon;
-        document.getElementById('op-sprite').src = data.op_sprite || '';
-        document.getElementById('op-tipo').textContent = data.op_tipo;
-        document.getElementById('op-hp').textContent = `HP: ${data.op_hp} / ${data.op_maxHp}`;
-        atualizarBarra('op-barra', data.op_hp, data.op_maxHp);
+            let opSpriteUrl = data.op_sprite || '';
+            if (opSpriteUrl.includes('/back/')) {
+                opSpriteUrl = opSpriteUrl.replace('/back/shiny/', '/shiny/').replace('/back/', '/');
+            }
+            document.getElementById('op-sprite').src = opSpriteUrl;
+            document.getElementById('op-tipo').textContent = data.op_tipo;
+            document.getElementById('op-hp').textContent = `HP: ${data.op_hp} / ${data.op_maxHp}`;
+            atualizarBarra('op-barra', data.op_hp, data.op_maxHp);
 
-        movesDisponiveis = data.moves;
-        renderizarMoves(data.moves);
-        if (data.team) renderizarTime(data.team);
-    }
+            movesDisponiveis = data.moves;
+            renderizarMoves(data.moves);
+            if (data.team) renderizarTime(data.team);
+        }
 
-    function atualizarBarra(id, hp, maxHp) {
-        const pct = Math.max(0, (hp / maxHp) * 100);
-        const barra = document.getElementById(id);
-        barra.style.width = pct + '%';
-        if (pct > 50)      barra.style.background = '#a6e3a1'; // verde
-        else if (pct > 20) barra.style.background = '#f9e2af'; // amarelo
-        else               barra.style.background = '#f38ba8'; // vermelho
-    }
+        function atualizarBarra(id, hp, maxHp) {
+            const pct = Math.max(0, (hp / maxHp) * 100);
+            const barra = document.getElementById(id);
+            barra.style.width = pct + '%';
+            if (pct > 50) barra.style.background = '#a6e3a1';
+            else if (pct > 20) barra.style.background = '#f9e2af';
+            else barra.style.background = '#f38ba8';
+        }
 
-    function renderizarMoves(moves) {
-        const container = document.getElementById('moves');
-        container.innerHTML = '';
-        moves.forEach(m => {
-            const btn = document.createElement('button');
-            btn.className = 'btn-move';
-            btn.innerHTML = `
-                <div class="move-nome">${m.nome}</div>
-                <div class="move-info">POW: ${m.poder} &nbsp;|&nbsp; ${m.tipo}</div>
-            `;
-            btn.onclick = () => usarMove(m.nome);
-            container.appendChild(btn);
-        });
-    }
+        function renderizarMoves(moves) {
+            const container = document.getElementById('moves');
+            container.innerHTML = '';
+            moves.forEach(m => {
+                const btn = document.createElement('button');
+                const tipoLower = m.tipo.toLowerCase();
+                btn.className = `btn-move btn-tipo-${tipoLower}`;
+                btn.innerHTML = `
+                    <div class="move-nome">${m.nome}</div>
+                    <div class="move-info">POW: ${m.poder} &nbsp;|&nbsp; ${m.tipo}</div>
+                `;
+                btn.onclick = () => usarMove(m.nome);
+                container.appendChild(btn);
+            });
+        }
 
-    function habilitarMoves(enabled) {
-        document.querySelectorAll('.btn-move').forEach(b => b.disabled = !enabled);
-    }
+        function habilitarMoves(enabled) {
+            document.querySelectorAll('.btn-move').forEach(b => b.disabled = !enabled);
+        }
 
-    function mostrarArena() {
-        document.getElementById('tela-inicio').style.display = 'none';
-        document.getElementById('arena').style.display = 'block';
-        document.getElementById('tela-fim').style.display = 'none';
-    }
+        function mostrarArena() {
+            document.getElementById('tela-inicio').style.display = 'none';
+            document.getElementById('arena').style.display = 'block';
+            document.getElementById('tela-fim').style.display = 'none';
+        }
 
-    function mostrarFim(resultado) {
-        document.getElementById('arena').style.display = 'none';
-        document.getElementById('tela-fim').style.display = 'block';
-        const msg = document.getElementById('msg-fim');
-        if (resultado === 'vitoria') { msg.textContent = '🏆 Você venceu!'; msg.className = 'vitoria'; }
-        else if (resultado === 'derrota') { msg.textContent = '💀 Você perdeu...'; msg.className = 'derrota'; }
-        else { msg.textContent = '🏃 Oponente desconectou. W.O.!'; msg.className = 'wo'; }
-    }
+        function mostrarFim(resultado) {
+            document.getElementById('arena').style.display = 'none';
+            document.getElementById('tela-fim').style.display = 'block';
+            const msg = document.getElementById('msg-fim');
+            if (resultado === 'vitoria') { msg.textContent = '🏆 Você venceu!'; msg.className = 'vitoria'; }
+            else if (resultado === 'derrota') { msg.textContent = '💀 Você perdeu...'; msg.className = 'derrota'; }
+            else { msg.textContent = '🏃 Oponente desconectou. W.O.!'; msg.className = 'wo'; }
+        }
 
-    function adicionarLog(msg, tipo) {
-        const log = document.getElementById('log');
-        const div = document.createElement('div');
-        div.className = tipo;
-        div.textContent = msg;
-        log.appendChild(div);
-        log.scrollTop = log.scrollHeight;
-    }
-    let teamData = [];
-
-    function abrirTime() {
-        if (teamData.length === 0) return;
-        document.getElementById('painel-time').style.display = 'block';
-        document.getElementById('acoes').style.display = 'none';
-    }
-
-    function fecharTime() {
-        document.getElementById('painel-time').style.display = 'none';
-        document.getElementById('acoes').style.display = 'flex';
-    }
-
-    function renderizarTime(team) {
-        teamData = team;
-        const container = document.getElementById('cards-time');
-        container.innerHTML = '';
-
-        team.forEach(p => {
+        function adicionarLog(msg, tipo) {
+            const log = document.getElementById('log');
             const div = document.createElement('div');
-            div.className = 'card-time' +
-                (p.ativo ? ' ativo' : '') +
-                (p.desmaiado ? ' desmaiado' : '');
+            div.className = tipo;
+            div.textContent = msg;
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        }
+        let teamData = [];
 
-            const pct = Math.max(0, (p.hp / p.maxHp) * 100);
-            const cor = pct > 50 ? '#a6e3a1' : pct > 20 ? '#f9e2af' : '#f38ba8';
-            const label = p.ativo ? '✓ Em batalha' : p.desmaiado ? '✗ Desmaiado' : 'Trocar';
+        function abrirTime() {
+            if (teamData.length === 0) return;
+            document.getElementById('painel-time').style.display = 'block';
+            document.getElementById('acoes').style.display = 'none';
+        }
 
-            div.innerHTML = `
+        function fecharTime() {
+            document.getElementById('painel-time').style.display = 'none';
+            document.getElementById('acoes').style.display = 'flex';
+        }
+
+        function renderizarTime(team) {
+            teamData = team;
+            const container = document.getElementById('cards-time');
+            container.innerHTML = '';
+
+            team.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'card-time' +
+                    (p.ativo ? ' ativo' : '') +
+                    (p.desmaiado ? ' desmaiado' : '');
+
+                const pct = Math.max(0, (p.hp / p.maxHp) * 100);
+                const cor = pct > 50 ? '#a6e3a1' : pct > 20 ? '#f9e2af' : '#f38ba8';
+                const label = p.ativo ? '✓ Em batalha' : p.desmaiado ? '✗ Desmaiado' : 'Trocar';
+
+                div.innerHTML = `
                 <div class="ct-nome">${p.nome}</div>
                 <div class="ct-tipo">${p.tipo}</div>
                 <div style="background:#1e1e2e; border-radius:999px; height:6px; margin-bottom:4px;">
@@ -422,19 +716,20 @@
                 <div style="font-size:0.7rem; color:#6c7086; margin-top:4px;">${label}</div>
             `;
 
-            if (!p.ativo && !p.desmaiado) {
-                div.onclick = () => trocar(p.nome);
-            }
+                if (!p.ativo && !p.desmaiado) {
+                    div.onclick = () => trocar(p.nome);
+                }
 
-            container.appendChild(div);
-        });
-    }
+                container.appendChild(div);
+            });
+        }
 
-    function trocar(nome) {
-        ws.send(JSON.stringify({ comando: 'SWITCH ' + nome }));
-        fecharTime();
-        adicionarLog('➤ SWITCH ' + nome, 'sistema');
-    }
-</script>
+        function trocar(nome) {
+            ws.send(JSON.stringify({ comando: 'SWITCH ' + nome }));
+            fecharTime();
+            adicionarLog('➤ SWITCH ' + nome, 'sistema');
+        }
+    </script>
 </body>
+
 </html>

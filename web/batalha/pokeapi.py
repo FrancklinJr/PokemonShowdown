@@ -30,7 +30,7 @@ def buscar_pokemon(pokemon_id):
     data = response.json()
 
     nome = data['name'].capitalize()
-    sprite = data['sprites']['front_default'] or ''
+    sprite = data['sprites']['back_default'] or ''
 
     stats = {s['stat']['name']: s['base_stat'] for s in data['stats']}
     hp      = stats.get('hp', 45)
