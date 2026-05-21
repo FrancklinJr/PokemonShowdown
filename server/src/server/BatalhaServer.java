@@ -10,9 +10,6 @@ import battle.Battle;
 
 public class BatalhaServer {
 
-    // Token compartilhado entre Django e Java.
-    // Lido de variável de ambiente — NUNCA hard-coded.
-    // Se a variável não estiver definida, o servidor recusa a iniciar.
     public static final String AUTH_TOKEN = System.getenv("BATALHA_AUTH_TOKEN");
 
     private static Queue<ClientHandler> matchmakingQueue = new ConcurrentLinkedQueue<>();
@@ -39,8 +36,6 @@ public class BatalhaServer {
 
         int port = 5000;
 
-        // Bind explicito em 127.0.0.1 — o servidor so aceita conexoes da
-        // propria maquina. O acesso externo passa obrigatoriamente pelo Django.
         try (ServerSocket serverSocket = new ServerSocket(
                 port, 50, InetAddress.getByName("127.0.0.1"))) {
 
