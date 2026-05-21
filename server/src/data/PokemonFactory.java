@@ -5,8 +5,6 @@ import java.util.*;
 
 public class PokemonFactory {
 
-    // Limites sanos para os stats. Qualquer valor fora disso e clampado
-    // ou faz o Pokemon ser descartado.
     private static final int MAX_HP        = 300;
     private static final int MAX_ATK       = 200;
     private static final int MAX_DEF       = 200;
@@ -57,7 +55,7 @@ public class PokemonFactory {
                     moves.add(new Move(moveName, power, moveType));
                 }
 
-                if (moves.isEmpty()) continue; // sem moves, descarta o Pokemon
+                if (moves.isEmpty()) continue;
 
                 PokemonSpecies species = new PokemonSpecies(nome, tipo, hp, atk, def, spd, moves);
                 Pokemon pokemon = new Pokemon(species);
@@ -65,8 +63,6 @@ public class PokemonFactory {
                 team.add(pokemon);
 
             } catch (Exception e) {
-                // Qualquer entrada malformada simplesmente vira um Pokemon
-                // descartado — nao derruba a batalha inteira.
                 System.err.println("Pokemon ignorado por dados invalidos: " + e.getMessage());
             }
         }
@@ -96,10 +92,6 @@ public class PokemonFactory {
         }
     }
 
-    /**
-     * Remove caracteres de controle e limita o tamanho. Evita que nomes
-     * com \n, \r ou separadores (, ; |) bagunce o protocolo.
-     */
     private static String sanitize(String s) {
         if (s == null) return "";
         String cleaned = s.replaceAll("[\\p{Cntrl},;|]", "").trim();
@@ -109,10 +101,6 @@ public class PokemonFactory {
         return cleaned;
     }
 
-    /**
-     * Aceita apenas URLs http(s) para sprites — evita injecao de
-     * javascript: ou data: no front-end.
-     */
     private static String sanitizeSprite(String s) {
         if (s == null) return "";
         String cleaned = s.replaceAll("[\\p{Cntrl},;|\"'<>]", "").trim();
