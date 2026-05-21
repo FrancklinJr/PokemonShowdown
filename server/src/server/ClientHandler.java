@@ -20,11 +20,8 @@ public class ClientHandler implements Runnable {
     private List<Pokemon> team;
     private Pokemon currentPokemon;
     private String teamData;
-
-    // Estado de seguranca
     private boolean authenticated = false;
 
-    // Rate limit: 10 comandos por segundo por conexao.
     private long windowStart = 0L;
     private int commandsInWindow = 0;
     private static final int MAX_COMMANDS_PER_SECOND = 10;
@@ -71,10 +68,6 @@ public class ClientHandler implements Runnable {
         output.println(message);
     }
 
-    /**
-     * Retorna true se o cliente pode enviar mais um comando agora,
-     * false se estourou o rate limit. Janela de 1 segundo.
-     */
     private boolean checkRateLimit() {
         long now = System.currentTimeMillis();
         if (now - windowStart >= 1000L) {
@@ -89,14 +82,9 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            // NAO envia boas-vindas antes de autenticar — evita dar pistas
-            // pra quem esta sondando a porta.
-
             String line;
             while ((line = input.readLine()) != null) {
 
-                // Limita o tamanho da linha para evitar memoria estourada
-                // por um cliente mandando uma linha gigante.
                 if (line.length() > 4096) {
                     sendMessage(JsonMessage.log("Comando muito longo."));
                     break;
@@ -107,7 +95,6 @@ public class ClientHandler implements Runnable {
                     break;
                 }
 
-                // Primeiro comando obrigatoriamente tem que ser AUTH.
                 if (!authenticated) {
                     if (line.startsWith("AUTH ")) {
                         String token = line.substring(5).trim();
@@ -118,7 +105,6 @@ public class ClientHandler implements Runnable {
                             continue;
                         }
                     }
-                    // Falhou autenticacao — encerra a conexao sem dar dicas.
                     System.out.println("Conexao recusada: AUTH invalido.");
                     break;
                 }
@@ -157,10 +143,6 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    /**
-     * Comparacao em tempo constante para evitar timing attack ao validar
-     * o token de autenticacao.
-     */
     private static boolean constantTimeEquals(String a, String b) {
         if (a == null || b == null) return false;
         if (a.length() != b.length()) return false;
