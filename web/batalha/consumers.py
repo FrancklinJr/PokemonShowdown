@@ -26,10 +26,6 @@ fila_lock = asyncio.Lock()
 
 
 def comando_sanitizado(raw_comando: str):
-    """
-    Recebe a string que veio do browser, valida formato e devolve uma
-    tupla (verbo, argumento) limpa. Devolve None se o comando for invalido.
-    """
     if not isinstance(raw_comando, str):
         return None
     raw_comando = raw_comando.strip()
